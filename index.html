@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en" class="antialiased">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Spaces | Block 23</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/studio-freight/lenis@1.0.19/bundled/lenis.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        core: {
+                            base: '#080a0d', // Deep charcoal tactile variant
+                            surface: '#11141a', // Elevated organic dark
+                            text: '#f2f4f7', // Alabaster/Off-white
+                            muted: '#8b949e', // Precision gray
+                            inverse: '#eef0f2', // Non-plain white
+                            inverseText: '#0d1117'
+                        },
+                        hue: {
+                            primary: '#148293', // Specialized Cyan/Teal
+                            primaryHover: '#106b7a',
+                            accent: '#d97d26', // Specialized Muted Amber
+                            accentHover: '#b8681e'
+                        }
+                    },
+                    spacing: {
+                        '8': '2rem',
+                        '16': '4rem',
+                        '24': '6rem',
+                        '32': '8rem',
+                    },
+                    transitionTimingFunction: {
+                        'kinetic': 'cubic-bezier(0.19, 1, 0.22, 1)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --grid-unit: 8px;
+            --kerning-optical: -0.02em;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #080a0d;
+            color: #f2f4f7;
+            overflow-x: hidden;
+            overscroll-behavior: none;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Lenis smooth scroll */
+        html.lenis { height: auto; }
+        .lenis.lenis-smooth { scroll-behavior: auto; }
+        .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+        .lenis.lenis-stopped { overflow: hidden; }
+        .lenis.lenis-scrolling iframe { pointer-events: none; }
+
+        /* Optical Layout Rules */
+        .optical-kern { letter-spacing: var(--kerning-optical); }
+        .text-balance { text-wrap: balance; }
+        
+        /* 3D Integration */
+        #webgl-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        /* Kinetic Typography Splitting */
+        .word-wrap {
+            display: inline-block;
+            overflow: hidden;
+            vertical-align: top;
+        }
+        .word-inner {
+            display: inline-block;
+            transform: translateY(100%);
+            will-change: transform;
+        }
+
+        /* Hide Scrollbar */
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+
+        /* Asymmetric Tension Utilities */
+        .tension-right { margin-left: auto; max-width: 85%; }
+        .tension-left { margin-right: auto; max-width: 85%; }
+        
+        /* Mobile Lock overrides */
+        @media (hover: none) and (pointer: coarse) {
+            .no-touch-hover { display: none; }
+        }
+
+        .spatial-image {
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+            transition: clip-path 1.2s cubic-bezier(0.19, 1, 0.22, 1), transform 1.2s cubic-bezier(0.19, 1, 0.22, 1);
+            will-change: transform, clip-path;
+        }
+    </style>
+</head>
+<body class="selection:bg-hue-accent selection:text-core-base font-sans optical-kern">
+
+    <!-- WebGL Background Context -->
+    <canvas id="webgl-canvas"></canvas>
+
+    <div id="scroll-container" class="relative z-10 w-full">
+        
+        <!-- Navigation -->
+        <nav class="fixed top-0 left-0 w-full z-50 bg-core-surface/80 backdrop-blur-md border-b border-core-muted/20">
+            <div class="px-8 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-8">
+                    <!-- Logo mark -->
+                    <div class="flex items-center gap-2 text-core-text font-bold text-xl tracking-tight">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="text-core-text">
+                            <path d="M12 2L22 7.5V16.5L12 22L2 16.5V7.5L12 2Z" />
+                        </svg>
+                        SPACES.
+                    </div>
+                    <div class="hidden md:flex gap-6 text-sm font-medium text-core-muted">
+                        <a href="#" class="hover:text-core-text transition-colors duration-200">Products</a>
+                        <a href="#" class="hover:text-core-text transition-colors duration-200">Solutions</a>
+                        <a href="#" class="hover:text-core-text transition-colors duration-200">Explore</a>
+                        <a href="#" class="hover:text-core-text transition-colors duration-200">Resources</a>
+                    </div>
+                </div>
+                <div class="flex items-center gap-6 text-sm font-medium">
+                    <span class="text-core-muted hidden lg:block">+385 1 3445 773</span>
+                    <a href="#" class="bg-hue-accent hover:bg-hue-accentHover text-core-base px-6 py-2 rounded-full transition-colors duration-200 font-semibold">Contact us</a>
+                    <div class="flex items-center gap-2 cursor-pointer">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-core-muted"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                        EN
+                    </div>
+                    <div class="w-8 h-8 rounded-full bg-core-surface flex items-center justify-center border border-core-muted/30">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-core-muted"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </div>
+                </div>
+            </div>
+            <!-- Subnav Carousel -->
+            <div class="w-full bg-core-base border-b border-core-muted/10 overflow-x-auto whitespace-nowrap px-8 py-3 scrollbar-hide flex gap-8 text-xs font-medium text-core-muted">
+                <a href="#" class="hover:text-core-text flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> Offices for individuals</a>
+                <a href="#" class="hover:text-core-text flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg> Dedicated desk</a>
+                <a href="#" class="hover:text-core-text flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Office space day pass</a>
+                <a href="#" class="hover:text-core-text flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Offices for small teams</a>
+                <a href="#" class="hover:text-core-text flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Offices for large teams</a>
+                <a href="#" class="hover:text-core-text flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg> Business address</a>
+                <a href="#" class="hover:text-core-text flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> Virtual office plans</a>
+                <a href="#" class="hover:text-core-text flex items-center gap-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg> Meeting rooms</a>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <header class="pt-48 pb-24 px-8 w-full min-h-[70vh] flex flex-col justify-center bg-core-inverse text-core-inverseText rounded-b-[4rem] relative overflow-hidden">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start max-w-7xl mx-auto w-full relative z-10">
+                <div class="md:col-span-5">
+                    <h1 class="text-6xl md:text-8xl font-bold tracking-tighter leading-none k-text">Block 23</h1>
+                </div>
+                <div class="md:col-span-7 tension-left pt-4">
+                    <p class="text-lg md:text-xl font-medium leading-relaxed text-core-inverseText/80 text-balance k-text">
+                        Block 23 at 101 East Washington Street places your business at the heart of Phoenix. <strong>Proximity to Phoenix Convention Center</strong> boosts client access, while nearby Arizona Center enhances lunch breaks. Ideal for <strong>offices</strong> and <strong>coworking</strong>, this location fosters productivity and professional image with cultural venues and dining options within walking distance.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Services Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto w-full mt-24">
+                <!-- Grid Items -->
+                <div class="flex flex-col gap-3 group">
+                    <div class="flex items-center gap-2 text-hue-accent font-semibold text-lg"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg> Online Quote</div>
+                    <p class="text-sm text-core-inverseText/70 leading-relaxed">Get personalized pricing and workspace solutions designed around your business, your team, your style.</p>
+                    <a href="#" class="text-core-inverseText font-bold text-sm inline-flex items-center gap-1 group-hover:text-hue-primary transition-colors">Contact Us <span class="transform group-hover:translate-x-1 transition-transform">→</span></a>
+                </div>
+                <div class="flex flex-col gap-3 group">
+                    <div class="flex items-center gap-2 text-hue-accent font-semibold text-lg"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg> Centre Tour</div>
+                    <p class="text-sm text-core-inverseText/70 leading-relaxed">Book your guided tour today and see firsthand how Spaces energizes your workday.</p>
+                    <a href="#" class="text-core-inverseText font-bold text-sm inline-flex items-center gap-1 group-hover:text-hue-primary transition-colors">Book A Tour <span class="transform group-hover:translate-x-1 transition-transform">→</span></a>
+                </div>
+                <div class="flex flex-col gap-3 group">
+                    <div class="flex items-center gap-2 text-hue-accent font-semibold text-lg"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Meeting Room</div>
+                    <p class="text-sm text-core-inverseText/70 leading-relaxed">Instantly reserve fully-equipped, stylish meeting rooms for presentations, client meetings, or brainstorming.</p>
+                    <a href="#" class="text-core-inverseText font-bold text-sm inline-flex items-center gap-1 group-hover:text-hue-primary transition-colors">Book Online <span class="transform group-hover:translate-x-1 transition-transform">→</span></a>
+                </div>
+                <div class="flex flex-col gap-3 group">
+                    <div class="flex items-center gap-2 text-hue-accent font-semibold text-lg"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Office Space Day Pass</div>
+                    <p class="text-sm text-core-inverseText/70 leading-relaxed">Book a private office for the day—your space to focus, innovate, and excel.</p>
+                    <a href="#" class="text-core-inverseText font-bold text-sm inline-flex items-center gap-1 group-hover:text-hue-primary transition-colors">Book Online <span class="transform group-hover:translate-x-1 transition-transform">→</span></a>
+                </div>
+                <div class="flex flex-col gap-3 group">
+                    <div class="flex items-center gap-2 text-hue-accent font-semibold text-lg"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> Cowork Day Pass</div>
+                    <p class="text-sm text-core-inverseText/70 leading-relaxed">Get instant access to beautifully designed coworking spaces whenever you need them.</p>
+                    <a href="#" class="text-core-inverseText font-bold text-sm inline-flex items-center gap-1 group-hover:text-hue-primary transition-colors">Book Online <span class="transform group-hover:translate-x-1 transition-transform">→</span></a>
+                </div>
+                <div class="flex flex-col gap-3 group">
+                    <div class="flex items-center gap-2 text-hue-accent font-semibold text-lg"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg> Virtual Offices</div>
+                    <p class="text-sm text-core-inverseText/70 leading-relaxed">Boost your brand with a prestigious business address, including professional mail and call handling.</p>
+                    <a href="#" class="text-core-inverseText font-bold text-sm inline-flex items-center gap-1 group-hover:text-hue-primary transition-colors">Buy Online <span class="transform group-hover:translate-x-1 transition-transform">→</span></a>
+                </div>
+                <div class="flex flex-col gap-3 group">
+                    <div class="flex items-center gap-2 text-hue-accent font-semibold text-lg"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> All Access</div>
+                    <p class="text-sm text-core-inverseText/70 leading-relaxed">Enjoy flexible, seamless access to our global network of Regus locations with an All Access membership.</p>
+                    <a href="#" class="text-core-inverseText font-bold text-sm inline-flex items-center gap-1 group-hover:text-hue-primary transition-colors">Buy Online <span class="transform group-hover:translate-x-1 transition-transform">→</span></a>
+                </div>
+                <div class="flex flex-col gap-3 group">
+                    <div class="flex items-center gap-2 text-hue-accent font-semibold text-lg"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> Spaces App</div>
+                    <p class="text-sm text-core-inverseText/70 leading-relaxed">Manage bookings and services effortlessly on the go with our user-friendly Spaces mobile app.</p>
+                    <a href="#" class="text-core-inverseText font-bold text-sm inline-flex items-center gap-1 group-hover:text-hue-primary transition-colors">Get The App <span class="transform group-hover:translate-x-1 transition-transform">→</span></a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Hero Banner Image & Popup -->
+        <section class="relative w-full max-w-7xl mx-auto px-8 -mt-16 z-20">
+            <div class="w-full h-[400px] md:h-[600px] rounded-[2rem] overflow-hidden relative shadow-2xl spatial-image scene-image">
+                <img src="image_b78193.jpg" alt="Meeting Room at Block 23" class="w-full h-full object-cover mix-blend-luminosity opacity-80" onerror="this.src='https://placehold.co/1200x600/11141a/8b949e?text=Block+23+Workspace'">
+                <div class="absolute inset-0 bg-gradient-to-t from-core-base/80 to-transparent"></div>
+                
+                <!-- Popup Overlay -->
+                <div class="absolute bottom-8 left-8 md:bottom-12 md:left-12 max-w-sm bg-core-surface/95 backdrop-blur-xl border border-core-muted/20 p-8 rounded-2xl shadow-xl">
+                    <button class="absolute top-4 right-4 w-8 h-8 rounded-full border border-core-muted flex items-center justify-center text-core-muted hover:text-core-text transition-colors">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                    <h3 class="text-2xl font-bold mb-3 text-core-text">Find your perfect place to work.</h3>
+                    <p class="text-sm text-core-muted mb-6 leading-relaxed">We'll walk you through the options, explain what fits, and help you plan your space.</p>
+                    <a href="#" class="bg-hue-accent hover:bg-hue-accentHover text-core-base px-6 py-3 rounded-full transition-colors duration-200 font-bold text-sm text-center block w-full">Let's Talk</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- The Spaces Difference -->
+        <section class="py-32 px-8 bg-transparent w-full">
+            <div class="max-w-7xl mx-auto">
+                <h2 class="text-4xl md:text-5xl font-bold mb-24 k-text">The Spaces difference</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-12">
+                    <div class="flex flex-col gap-6">
+                        <div class="w-12 h-12 rounded-full border border-core-muted/30 flex items-center justify-center text-core-text bg-core-surface"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12A10 10 0 1 0 12 2v10z"/><path d="M12 2A10 10 0 1 0 2 12h10z"/></svg></div>
+                        <h4 class="text-xl font-bold">Spaces built to spark creativity</h4>
+                        <p class="text-sm text-core-muted leading-relaxed">Our thoughtfully crafted workspaces combine stunning design with vibrant communities. Every corner is curated to inspire big ideas and meaningful collaboration.</p>
+                    </div>
+                    <div class="flex flex-col gap-6">
+                        <div class="w-12 h-12 rounded-full border border-core-muted/30 flex items-center justify-center text-core-text bg-core-surface"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+                        <h4 class="text-xl font-bold">A community ready to connect</h4>
+                        <p class="text-sm text-core-muted leading-relaxed">Join a thriving network of forward-thinking creators and businesses. Regular events, workshops, and social gatherings help you build relationships that grow your ideas and your network.</p>
+                    </div>
+                    <div class="flex flex-col gap-6">
+                        <div class="w-12 h-12 rounded-full border border-core-muted/30 flex items-center justify-center text-core-text bg-core-surface"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg></div>
+                        <h4 class="text-xl font-bold">Seamless flexibility for modern working</h4>
+                        <p class="text-sm text-core-muted leading-relaxed">From hot desks to dedicated offices, Spaces offers a wide range of flexible solutions. Scale your workspace effortlessly as your team or ambition grows.</p>
+                    </div>
+                    <div class="flex flex-col gap-6">
+                        <div class="w-12 h-12 rounded-full border border-core-muted/30 flex items-center justify-center text-core-text bg-core-surface"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+                        <h4 class="text-xl font-bold">Expert support, effortlessly delivered</h4>
+                        <p class="text-sm text-core-muted leading-relaxed">Enjoy smooth, professional support from a team dedicated to making your workday seamless. We handle the details so you can focus on what matters most.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Products -->
+        <section class="py-32 px-8 bg-core-inverse text-core-inverseText rounded-t-[4rem] rounded-b-[4rem]">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-8 mb-16">
+                    <h2 class="text-4xl md:text-6xl font-bold leading-tight max-w-2xl k-text">Products and service at Block 23</h2>
+                    <p class="text-lg font-medium max-w-xs text-balance">Plug into our energy and watch your world accelerate.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-16">
+                    
+                    <!-- Product Card -->
+                    <div class="group cursor-pointer">
+                        <div class="w-full aspect-[4/3] rounded-2xl overflow-hidden mb-6 bg-core-muted/20">
+                            <img src="image_b7860b.jpg" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out" onerror="this.src='https://placehold.co/600x400/11141a/8b949e?text=Offices'">
+                        </div>
+                        <div class="flex items-start justify-between gap-4">
+                            <h4 class="text-2xl font-bold leading-tight">Offices for individuals</h4>
+                            <span class="transform -rotate-45 group-hover:rotate-0 transition-transform duration-300">→</span>
+                        </div>
+                        <p class="text-sm font-medium mt-4">Prices from <span class="text-lg font-bold">$ 10</span> Per person per day</p>
+                    </div>
+
+                    <!-- Product Card -->
+                    <div class="group cursor-pointer">
+                        <div class="w-full aspect-[4/3] rounded-2xl overflow-hidden mb-6 bg-core-muted/20">
+                            <img src="image_b7864b.jpg" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out" onerror="this.src='https://placehold.co/600x400/11141a/8b949e?text=Small+Teams'">
+                        </div>
+                        <div class="flex items-start justify-between gap-4">
+                            <h4 class="text-2xl font-bold leading-tight">Offices for small teams</h4>
+                            <span class="transform -rotate-45 group-hover:rotate-0 transition-transform duration-300">→</span>
+                        </div>
+                        <p class="text-sm font-medium mt-4">Prices from <span class="text-lg font-bold">$ 10</span> Per person per day</p>
+                    </div>
+
+                    <!-- Product Card -->
+                    <div class="group cursor-pointer">
+                        <div class="w-full aspect-[4/3] rounded-2xl overflow-hidden mb-6 bg-core-muted/20">
+                            <img src="image_b7892e.jpg" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out" onerror="this.src='https://placehold.co/600x400/11141a/8b949e?text=Cowork'">
+                        </div>
+                        <div class="flex items-start justify-between gap-4">
+                            <h4 class="text-2xl font-bold leading-tight">Cowork day pass</h4>
+                            <span class="transform -rotate-45 group-hover:rotate-0 transition-transform duration-300">→</span>
+                        </div>
+                        <p class="text-sm font-medium mt-4">Prices from <span class="text-lg font-bold">$ 49</span> Per day</p>
+                    </div>
+
+                    <!-- Product Card -->
+                    <div class="group cursor-pointer">
+                        <div class="w-full aspect-[4/3] rounded-2xl overflow-hidden mb-6 bg-core-muted/20">
+                            <img src="image_b78574.jpg" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out" onerror="this.src='https://placehold.co/600x400/11141a/8b949e?text=Virtual+Office'">
+                        </div>
+                        <div class="flex items-start justify-between gap-4">
+                            <h4 class="text-2xl font-bold leading-tight">Virtual office plans</h4>
+                            <span class="transform -rotate-45 group-hover:rotate-0 transition-transform duration-300">→</span>
+                        </div>
+                        <p class="text-sm font-medium mt-4">Prices from <span class="text-lg font-bold">$ 3</span> Per day</p>
+                    </div>
+
+                    <!-- Product Card -->
+                    <div class="group cursor-pointer">
+                        <div class="w-full aspect-[4/3] rounded-2xl overflow-hidden mb-6 bg-core-muted/20">
+                            <img src="image_b785c9.jpg" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out" onerror="this.src='https://placehold.co/600x400/11141a/8b949e?text=Meeting+Rooms'">
+                        </div>
+                        <div class="flex items-start justify-between gap-4">
+                            <h4 class="text-2xl font-bold leading-tight">Meeting rooms</h4>
+                            <span class="transform -rotate-45 group-hover:rotate-0 transition-transform duration-300">→</span>
+                        </div>
+                        <p class="text-sm font-medium mt-4">Prices from <span class="text-lg font-bold">$ 49</span> Per hour</p>
+                    </div>
+
+                    <!-- Product Card -->
+                    <div class="group cursor-pointer">
+                        <div class="w-full aspect-[4/3] rounded-2xl overflow-hidden mb-6 bg-core-muted/20">
+                            <img src="image_b7dbaa.jpg" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out" onerror="this.src='https://placehold.co/600x400/11141a/8b949e?text=Medical+Offices'">
+                        </div>
+                        <div class="flex items-start justify-between gap-4">
+                            <h4 class="text-2xl font-bold leading-tight">Medical offices</h4>
+                            <span class="transform -rotate-45 group-hover:rotate-0 transition-transform duration-300">→</span>
+                        </div>
+                        <p class="text-sm font-medium mt-4">Prices from <span class="text-lg font-bold">$ 3</span></p>
+                    </div>
+
+                    <!-- Product Card -->
+                    <div class="group cursor-pointer">
+                        <div class="w-full aspect-[4/3] rounded-2xl overflow-hidden mb-6 bg-core-muted/20">
+                            <img src="image_b7896a.jpg" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out" onerror="this.src='https://placehold.co/600x400/11141a/8b949e?text=Large+Teams'">
+                        </div>
+                        <div class="flex items-start justify-between gap-4">
+                            <h4 class="text-2xl font-bold leading-tight">Offices for large teams</h4>
+                            <span class="transform -rotate-45 group-hover:rotate-0 transition-transform duration-300">→</span>
+                        </div>
+                        <p class="text-sm font-medium mt-4">Prices from <span class="text-lg font-bold">$ 10</span> Per person per day</p>
+                    </div>
+
+                    <!-- Product Card -->
+                    <div class="group cursor-pointer">
+                        <div class="w-full aspect-[4/3] rounded-2xl overflow-hidden mb-6 bg-core-muted/20">
+                            <img src="image_b789e7.jpg" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out" onerror="this.src='https://placehold.co/600x400/11141a/8b949e?text=Business+Address'">
+                        </div>
+                        <div class="flex items-start justify-between gap-4">
+                            <h4 class="text-2xl font-bold leading-tight">Business address</h4>
+                            <span class="transform -rotate-45 group-hover:rotate-0 transition-transform duration-300">→</span>
+                        </div>
+                        <p class="text-sm font-medium mt-4">Prices from <span class="text-lg font-bold">$ 3</span> Per day</p>
+                    </div>
+
+                </div>
+
+                <div class="mt-16 flex justify-center">
+                    <button class="border border-core-inverseText/20 hover:border-core-inverseText text-core-inverseText px-8 py-3 rounded-full transition-colors duration-200 font-semibold text-sm flex items-center gap-2">Load More Products <span class="text-lg font-normal">+</span></button>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Block 23 -->
+        <section class="py-32 px-8 bg-transparent w-full">
+            <div class="max-w-7xl mx-auto">
+                <h2 class="text-4xl md:text-5xl font-bold mb-16 k-text">About Block 23</h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
+                    <div class="lg:col-span-12">
+                        <h3 class="text-2xl font-bold mb-6">What makes this location special</h3>
+                        <p class="text-core-muted leading-relaxed text-balance max-w-4xl">
+                            Block 23, located at 101 East Washington Street, is a prime spot for flexible workspaces in Phoenix. <strong>Proximity to the Phoenix Convention Center</strong> enhances client access and decision-making opportunities, while Phoenix City Hall's nearby presence supports compliance and municipal interactions. Efficient transport links ensure seamless connectivity to key business hubs. The area boasts a professional environment with top-tier <strong>offices</strong> that elevate your business image. <strong>Coworking spaces</strong> here foster collaboration among a dynamic community of professionals. Choosing Block 23 means <strong>maximizing operational efficiency</strong> and benefiting from a strategic location that drives business success.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-24">
+                    <h3 class="text-2xl font-bold mb-8">You're part of a much bigger network</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center bg-core-surface border border-core-muted/10 rounded-[2rem] overflow-hidden">
+                        <div class="h-[400px] w-full relative bg-core-base">
+                            <img src="image_b7898d.jpg" class="w-full h-full object-cover opacity-70 mix-blend-screen" onerror="this.src='https://placehold.co/800x800/11141a/8b949e?text=Map'">
+                            <div class="absolute top-6 left-6 bg-core-base border border-core-muted/20 px-4 py-2 rounded-full text-xs font-bold tracking-wider uppercase flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full bg-hue-accent"></div> 55 Locations
+                            </div>
+                        </div>
+                        <div class="p-12 pl-0">
+                            <a href="#" class="text-3xl font-bold mb-8 flex items-center gap-2 hover:text-hue-primary transition-colors">Spaces in Phoenix <span class="transform hover:translate-x-2 transition-transform">→</span></a>
+                            
+                            <ul class="flex flex-wrap gap-4 text-sm font-semibold mb-8 text-core-muted">
+                                <li class="flex items-center gap-2">Office space <span class="text-core-base ml-2">•</span></li>
+                                <li class="flex items-center gap-2">Coworking <span class="text-core-base ml-2">•</span></li>
+                                <li class="flex items-center gap-2">Virtual offices <span class="text-core-base ml-2">•</span></li>
+                                <li class="flex items-center gap-2">Meeting rooms</li>
+                            </ul>
+
+                            <p class="text-sm text-core-muted leading-relaxed max-w-lg">
+                                Phoenix, a bustling city in Arizona, is home to Spaces' vibrant coworking spaces and serviced offices. With locations in key business districts like Downtown Phoenix, Camelback Corridor, and Scottsdale, our meeting rooms and virtual offices cater to innovative minds. Experience the dynamic work environment and entrepreneurial spirit that define Spaces in Phoenix.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Amenities & Location -->
+        <section class="py-32 px-8 bg-core-inverse text-core-inverseText rounded-t-[4rem]">
+            <div class="max-w-7xl mx-auto">
+                <h2 class="text-4xl md:text-5xl font-bold mb-16 text-center k-text">Amenities available</h2>
+                
+                <div class="flex flex-wrap justify-center gap-16 mb-32">
+                    <div class="flex flex-col items-center gap-4 group">
+                        <div class="text-core-muted group-hover:text-hue-primary transition-colors"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+                        <span class="text-sm font-medium">Meeting Rooms</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-4 group">
+                        <div class="text-core-muted group-hover:text-hue-primary transition-colors"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg></div>
+                        <span class="text-sm font-medium">Major Transport Links</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-4 group">
+                        <div class="text-core-muted group-hover:text-hue-primary transition-colors"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></div>
+                        <span class="text-sm font-medium">City/Town Center</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-4 group">
+                        <div class="text-core-muted group-hover:text-hue-primary transition-colors"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
+                        <span class="text-sm font-medium">Common Areas</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                    <div>
+                        <h2 class="text-4xl md:text-5xl font-bold mb-8 k-text">Where to find us</h2>
+                        <h4 class="text-xl font-bold mb-2">Address</h4>
+                        <p class="text-core-inverseText/70 mb-8">101 East Washington Street Suite 800, Phoenix, AZ, 85004, USA</p>
+                        
+                        <h4 class="text-xl font-bold mb-2">24/7 Access</h4>
+                        <p class="text-core-inverseText/70 mb-8">For private office and dedicated cowork customers</p>
+
+                        <div class="flex gap-4">
+                            <a href="#" class="bg-hue-accent hover:bg-hue-accentHover text-core-base px-6 py-3 rounded-full transition-colors duration-200 font-bold text-sm inline-flex items-center gap-2">Contact Us <span class="text-lg">→</span></a>
+                            <a href="#" class="border border-core-inverseText/20 hover:border-core-inverseText text-core-inverseText px-6 py-3 rounded-full transition-colors duration-200 font-bold text-sm">Book A Tour</a>
+                        </div>
+                    </div>
+                    <div class="h-[400px] w-full bg-core-muted/20 rounded-3xl overflow-hidden relative shadow-lg">
+                        <img src="image_b789e7.jpg" class="w-full h-full object-cover mix-blend-multiply opacity-90" onerror="this.src='https://placehold.co/800x600/11141a/8b949e?text=Map+Location'">
+                        <button class="absolute bottom-6 left-6 bg-core-surface text-core-text px-6 py-2 rounded-full text-sm font-bold shadow-xl border border-core-muted/20 hover:bg-core-base transition-colors flex items-center gap-2">View map ↗</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-24 px-8 bg-core-inverse text-core-inverseText border-t border-core-inverseText/10">
+            <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+                <div class="rounded-[2rem] overflow-hidden aspect-square sticky top-32 spatial-image">
+                    <img src="image_b78193.jpg" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/800x800/11141a/8b949e?text=Location'">
+                </div>
+                <div class="flex flex-col gap-12">
+                    <h2 class="text-4xl md:text-5xl font-bold k-text">Nearby information</h2>
+                    
+                    <div class="flex flex-col gap-4">
+                        <h4 class="text-2xl font-bold">Prime Business District</h4>
+                        <p class="text-core-inverseText/70 leading-relaxed text-sm">Positioned in the heart of Downtown Phoenix, 101 East Washington Street places you in the city's thriving Central Business District. Surrounded by corporate offices, government agencies, and professional services, this location is ideal for companies seeking <strong>flexible office space</strong>. Enjoy the convenience of nearby Phoenix City Hall and the Arizona State Capitol, making it a strategic hub for businesses interacting with civic and state institutions. This vibrant area ensures you're always close to opportunity.</p>
+                    </div>
+
+                    <div class="flex flex-col gap-4">
+                        <h4 class="text-2xl font-bold">Exceptional Transport Links</h4>
+                        <p class="text-core-inverseText/70 leading-relaxed text-sm">Seamlessly connected, this location benefits from excellent transport options. The Valley Metro Rail runs through the Central Avenue corridor, linking Downtown Phoenix with surrounding neighborhoods. For international or domestic travel, Phoenix Sky Harbor International Airport is just a short drive away. Whether commuting locally or traveling globally, your workspace ensures easy access. Convenience and connectivity come standard here, letting you focus on your business without missing a beat.</p>
+                    </div>
+
+                    <div class="flex flex-col gap-4">
+                        <h4 class="text-2xl font-bold">Cultural and Recreational Gems</h4>
+                        <p class="text-core-inverseText/70 leading-relaxed text-sm">Immerse yourself in Downtown Phoenix's rich cultural scene just steps from your office. Explore the Arizona Science Center for inspiration or unwind at Margaret T. Hance Park, a lush green space perfect for a midday recharge. The historic Orpheum Theatre and Heritage Square add a touch of artistic flair, while the Phoenix Convention Center hosts major events year-round. This dynamic environment blends work and play effortlessly, energizing your daily routine.</p>
+                    </div>
+
+                    <div class="flex flex-col gap-4">
+                        <h4 class="text-2xl font-bold">Shopping and Dining Hub</h4>
+                        <p class="text-core-inverseText/70 leading-relaxed text-sm">Your workspace is surrounded by retail and entertainment options at CityScape Phoenix, a vibrant mixed-use complex anchoring the downtown area. From stylish boutiques to trendy eateries, everything you need is right at your fingertips. Whether grabbing a quick lunch or hosting a client dinner, the area's diverse culinary offerings cater to every taste. This prime location ensures your business feels at the center of it all, with convenience woven into every aspect of your day.</p>
+                    </div>
+
+                    <div class="flex gap-4 mt-4">
+                        <a href="#" class="bg-hue-accent hover:bg-hue-accentHover text-core-base px-8 py-4 rounded-full transition-colors duration-200 font-bold text-sm inline-flex items-center gap-2">Contact Us <span class="text-lg">→</span></a>
+                        <a href="#" class="border border-core-inverseText/20 hover:border-core-inverseText text-core-inverseText px-8 py-4 rounded-full transition-colors duration-200 font-bold text-sm">Book A Tour</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gallery -->
+        <section class="py-24 px-8 bg-core-inverse text-core-inverseText pb-32">
+            <div class="max-w-7xl mx-auto">
+                <h2 class="text-3xl font-bold mb-12">Location image gallery</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="aspect-square rounded-[2rem] overflow-hidden bg-core-muted/20 spatial-image">
+                         <img src="image_b78193.jpg" class="w-full h-full object-cover mix-blend-darken" onerror="this.src='https://placehold.co/800x800/11141a/8b949e?text=Gallery+1'">
+                    </div>
+                    <div class="aspect-[3/4] md:aspect-square rounded-[2rem] overflow-hidden bg-core-muted/20 mt-12 spatial-image">
+                         <img src="image_b7dbaa.jpg" class="w-full h-full object-cover mix-blend-darken" onerror="this.src='https://placehold.co/800x800/11141a/8b949e?text=Gallery+2'">
+                    </div>
+                    <div class="aspect-square rounded-[2rem] overflow-hidden bg-core-muted/20 spatial-image">
+                         <img src="image_b7860b.jpg" class="w-full h-full object-cover mix-blend-darken" onerror="this.src='https://placehold.co/800x800/11141a/8b949e?text=Gallery+3'">
+                    </div>
+                </div>
+                <div class="flex gap-4 mt-12">
+                    <button class="w-12 h-12 rounded-full border border-core-inverseText/20 flex items-center justify-center hover:border-core-inverseText transition-colors">←</button>
+                    <button class="w-12 h-12 rounded-full border border-core-inverseText/20 flex items-center justify-center hover:border-core-inverseText transition-colors">→</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer / Contact -->
+        <footer class="bg-core-base text-core-text rounded-t-[4rem] px-8 pt-32 pb-12 relative overflow-hidden">
+            <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-24 border-b border-core-muted/10 pb-24 relative z-10">
+                
+                <div>
+                    <h2 class="text-5xl md:text-7xl font-bold leading-tight k-text">Plug into our energy and watch your world accelerate.</h2>
+                    <!-- Abstract geometric accents handled by webgl background -->
+                </div>
+
+                <div class="bg-core-surface/50 p-8 md:p-12 rounded-3xl border border-core-muted/10 backdrop-blur-md">
+                    <h3 class="text-2xl font-bold mb-4">Let's keep this conversation going.</h3>
+                    <p class="text-sm text-core-muted mb-8">Still have questions? Contact us, we're happy to help!</p>
+                    
+                    <form class="flex flex-col gap-4">
+                        <div class="relative">
+                            <div class="absolute left-6 top-1/2 -translate-y-1/2 text-core-muted"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+                            <input type="email" placeholder="Email" class="w-full bg-core-base border border-core-muted/20 rounded-full py-4 pl-14 pr-6 focus:outline-none focus:border-hue-primary transition-colors text-sm placeholder:text-core-muted/50">
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="w-1/3 relative bg-core-base border border-core-muted/20 rounded-full flex items-center px-4 justify-between cursor-pointer text-sm">
+                                <div class="flex items-center gap-2"><span class="text-xs">🇭🇷</span> <span>▾</span></div>
+                            </div>
+                            <div class="w-2/3 relative">
+                                <div class="absolute left-6 top-1/2 -translate-y-1/2 text-core-muted/50 text-sm">(+385)</div>
+                                <input type="tel" placeholder="Phone number" class="w-full bg-core-base border border-core-muted/20 rounded-full py-4 pl-20 pr-6 focus:outline-none focus:border-hue-primary transition-colors text-sm placeholder:text-core-muted/50">
+                            </div>
+                        </div>
+                        
+                        <p class="text-[10px] text-core-muted my-2">By submitting this form you agree to our <a href="#" class="underline hover:text-core-text">Privacy Policy</a></p>
+                        
+                        <button class="bg-hue-accent hover:bg-hue-accentHover text-core-base w-full py-4 rounded-full font-bold transition-colors duration-200 text-sm flex items-center justify-center gap-2">Get Started <span>→</span></button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="max-w-7xl mx-auto py-12 border-b border-core-muted/10">
+                <p class="text-xs text-core-muted leading-relaxed mb-4 max-w-4xl">Spaces contracts are not rental agreements, leases or tenancies. References on this site to "rent", "rental" or "rental agreement" are used for convenience and search purposes only to describe the fees for workspace services and do not change the legal nature of the agreement you enter into.</p>
+                <p class="text-xs text-core-muted leading-relaxed max-w-4xl">All prices quoted are valid at the time of inquiry. Prices are subject to change and vary depending on the products and services selected, and subject to availability. Terms and conditions apply.</p>
+                <button class="mt-8 flex items-center gap-2 text-sm font-semibold hover:text-hue-primary transition-colors"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg> Show locations</button>
+            </div>
+
+            <div class="max-w-7xl mx-auto pt-12 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 text-xs font-semibold">
+                <div class="flex items-center gap-2 text-core-text text-lg">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L22 7.5V16.5L12 22L2 16.5V7.5L12 2Z" /></svg>
+                    SPACES.
+                </div>
+                <div class="flex flex-wrap gap-6 text-core-muted">
+                    <a href="#" class="hover:text-core-text transition-colors">Privacy Policy</a>
+                    <a href="#" class="hover:text-core-text transition-colors">Cookie Policy</a>
+                    <a href="#" class="hover:text-core-text transition-colors">Cookie Settings</a>
+                    <a href="#" class="hover:text-core-text transition-colors">Terms And Conditions</a>
+                    <a href="#" class="hover:text-core-text transition-colors">Legal</a>
+                </div>
+                <div class="flex items-center gap-2 text-core-muted cursor-pointer hover:text-core-text transition-colors">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    English (EN)
+                </div>
+            </div>
+            <div class="max-w-7xl mx-auto mt-12 text-xs text-core-muted/50">
+                Copyright © 2026 Spaces group company. All rights reserved.
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        /**
+         * BNDR_AWWWARDS_SYS_ARCHITECT EXECUTION
+         * Zero-dependency Vanilla JS core (where possible) + Three/GSAP/Lenis orchestration.
+         * Enforces strict mathematical synchronization between WebGL canvas and DOM timeline.
+         */
+
+        // SIGNAL GRAPH STATE
+        const State = {
+            scroll: { current: 0, target: 0, velocity: 0, progress: 0 },
+            mouse: { x: 0, y: 0, targetX: 0, targetY: 0, velocity: 0 },
+            time: { current: 0, delta: 0 },
+            device: { isTouch: false }
+        };
+
+        // DEVICE CAPABILITY DETECTION
+        State.device.isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (navigator.msMaxTouchPoints > 0);
+
+        // KINETIC TYPOGRAPHY SPLITTER (Zero-dependency custom implementation)
+        class KineticSplitter {
+            constructor(selector) {
+                this.elements = document.querySelectorAll(selector);
+                this.split();
+            }
+            split() {
+                this.elements.forEach(el => {
+                    const text = el.innerText;
+                    el.innerHTML = '';
+                    const words = text.split(' ');
+                    words.forEach((word, i) => {
+                        const wrapper = document.createElement('span');
+                        wrapper.className = 'word-wrap';
+                        
+                        const inner = document.createElement('span');
+                        inner.className = 'word-inner';
+                        inner.innerHTML = word + (i < words.length - 1 ? '&nbsp;' : '');
+                        
+                        wrapper.appendChild(inner);
+                        el.appendChild(wrapper);
+                    });
+                });
+            }
+        }
+
+        // SDF RAYMARCHING WEBGL ENGINE
+        class ShaderEngine {
+            constructor() {
+                this.canvas = document.getElementById('webgl-canvas');
+                this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: false, alpha: false });
+                this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Performance cap
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+
+                this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+                this.scene = new THREE.Scene();
+
+                // Dynamic Specialized Hues inserted into shader
+                this.material = new THREE.ShaderMaterial({
+                    uniforms: {
+                        uTime: { value: 0 },
+                        uScroll: { value: 0 },
+                        uMouse: { value: new THREE.Vector2(0,0) },
+                        uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
+                    },
+                    vertexShader: `
+                        varying vec2 vUv;
+                        void main() {
+                            vUv = uv;
+                            gl_Position = vec4(position, 1.0);
+                        }
+                    `,
+                    fragmentShader: `
+                        uniform float uTime;
+                        uniform float uScroll;
+                        uniform vec2 uMouse;
+                        uniform vec2 uResolution;
+                        varying vec2 vUv;
+
+                        // SDF Primitives
+                        float sdSphere( vec3 p, float s ) { return length(p)-s; }
+                        float smin( float a, float b, float k ) {
+                            float h = clamp( 0.5+0.5*(b-a)/k, 0.0, 1.0 );
+                            return mix( b, a, h ) - k*h*(1.0-h);
+                        }
+                        
+                        // FBM Noise
+                        float hash(float n) { return fract(sin(n) * 1e4); }
+                        float noise(vec3 x) {
+                            const vec3 step = vec3(110, 241, 171);
+                            vec3 i = floor(x);
+                            vec3 f = fract(x);
+                            float n = dot(i, step);
+                            vec3 u = f * f * (3.0 - 2.0 * f);
+                            return mix(mix(mix( hash(n + dot(step, vec3(0, 0, 0))), hash(n + dot(step, vec3(1, 0, 0))), u.x),
+                                   mix( hash(n + dot(step, vec3(0, 1, 0))), hash(n + dot(step, vec3(1, 1, 0))), u.x), u.y),
+                               mix(mix( hash(n + dot(step, vec3(0, 0, 1))), hash(n + dot(step, vec3(1, 0, 1))), u.x),
+                                   mix( hash(n + dot(step, vec3(0, 1, 1))), hash(n + dot(step, vec3(1, 1, 1))), u.x), u.y), u.z);
+                        }
+
+                        // Map Scene
+                        float map(vec3 p) {
+                            vec3 p1 = p - vec3(sin(uTime*0.5)*1.5, cos(uTime*0.4)*1.0 - uScroll*3.0, 2.0);
+                            vec3 p2 = p - vec3(-sin(uTime*0.6 + uMouse.x*2.0)*2.0, -cos(uTime*0.3)*1.5 - uScroll*2.5, 3.0);
+                            
+                            // Distortion
+                            float n = noise(p * 1.5 + uTime * 0.2) * 0.5;
+                            p1 += n; p2 += n;
+                            
+                            float d1 = sdSphere(p1, 1.2);
+                            float d2 = sdSphere(p2, 1.5);
+                            
+                            return smin(d1, d2, 1.5);
+                        }
+
+                        // Normal
+                        vec3 calcNormal(vec3 p) {
+                            const float eps = 0.01;
+                            const vec2 h = vec2(eps,0);
+                            return normalize(vec3(map(p+h.xyy) - map(p-h.xyy),
+                                                  map(p+h.yxy) - map(p-h.yxy),
+                                                  map(p+h.yyx) - map(p-h.yyx)));
+                        }
+
+                        void main() {
+                            vec2 uv = (vUv - 0.5) * (uResolution.xy / min(uResolution.x, uResolution.y));
+                            vec3 ro = vec3(0.0, 0.0, -5.0);
+                            vec3 rd = normalize(vec3(uv, 1.0));
+                            
+                            float t = 0.0;
+                            for(int i=0; i<64; i++) {
+                                vec3 p = ro + rd * t;
+                                float d = map(p);
+                                if(d < 0.01 || t > 10.0) break;
+                                t += d;
+                            }
+
+                            // Palette (Dark Charcoal, specialized Teal, muted Amber)
+                            vec3 bg = vec3(0.03, 0.04, 0.05); // #080a0d base
+                            vec3 col = bg;
+
+                            if(t < 10.0) {
+                                vec3 p = ro + rd * t;
+                                vec3 n = calcNormal(p);
+                                
+                                // Lighting
+                                vec3 light1 = normalize(vec3(1.0, 1.0, -1.0));
+                                vec3 light2 = normalize(vec3(-1.0, -1.0, -1.0));
+                                
+                                float diff1 = max(0.0, dot(n, light1));
+                                float diff2 = max(0.0, dot(n, light2));
+                                
+                                vec3 col1 = vec3(0.08, 0.51, 0.58); // Primary Hue (#148293)
+                                vec3 col2 = vec3(0.85, 0.49, 0.15); // Accent Hue (#d97d26)
+                                
+                                col = mix(bg, col1, diff1 * 0.8);
+                                col = mix(col, col2, diff2 * 0.4);
+                                
+                                // Fresnel
+                                float fresnel = pow(1.0 - max(dot(n, -rd), 0.0), 3.0);
+                                col += vec3(0.2, 0.3, 0.4) * fresnel * 0.5;
+                            }
+                            
+                            // Vignette
+                            float vig = length(vUv - 0.5);
+                            col = mix(col, bg, vig * 1.0);
+
+                            gl_FragColor = vec4(col, 1.0);
+                        }
+                    `
+                });
+
+                this.mesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), this.material);
+                this.scene.add(this.mesh);
+
+                window.addEventListener('resize', this.onResize.bind(this));
+                window.addEventListener('mousemove', this.onMouseMove.bind(this));
+            }
+
+            onResize() {
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
+                this.material.uniforms.uResolution.value.set(window.innerWidth, window.innerHeight);
+            }
+
+            onMouseMove(e) {
+                if(State.device.isTouch) return;
+                State.mouse.targetX = (e.clientX / window.innerWidth) * 2 - 1;
+                State.mouse.targetY = -(e.clientY / window.innerHeight) * 2 + 1;
+            }
+
+            render(time) {
+                // Damped integration for smooth shader input
+                State.mouse.x += (State.mouse.targetX - State.mouse.x) * 0.05;
+                State.mouse.y += (State.mouse.targetY - State.mouse.y) * 0.05;
+                
+                this.material.uniforms.uTime.value = time * 0.001;
+                this.material.uniforms.uScroll.value = State.scroll.progress;
+                this.material.uniforms.uMouse.value.set(State.mouse.x, State.mouse.y);
+                
+                this.renderer.render(this.scene, this.camera);
+            }
+        }
+
+        // SCROLL ORCHESTRATION & MASTER TIMELINE
+        class Orchestrator {
+            constructor() {
+                this.initScroll();
+                this.initTypography();
+                this.initSpatialImages();
+            }
+
+            initScroll() {
+                this.lenis = new Lenis({
+                    duration: 1.2,
+                    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+                    direction: 'vertical',
+                    gestureDirection: 'vertical',
+                    smooth: true,
+                    mouseMultiplier: 1,
+                    smoothTouch: false,
+                    touchMultiplier: 2,
+                });
+
+                this.lenis.on('scroll', (e) => {
+                    ScrollTrigger.update();
+                    State.scroll.current = e.scroll;
+                    State.scroll.velocity = e.velocity;
+                    // Normalized progress (0-1) across document
+                    State.scroll.progress = e.scroll / (document.documentElement.scrollHeight - window.innerHeight);
+                });
+
+                // Ticker Sync Pattern
+                gsap.ticker.add((time) => {
+                    this.lenis.raf(time * 1000);
+                });
+                gsap.ticker.lagSmoothing(0);
+            }
+
+            initTypography() {
+                const splitter = new KineticSplitter('.k-text');
+                
+                // Master deterministic timeline logic per block
+                document.querySelectorAll('.k-text').forEach((el) => {
+                    const words = el.querySelectorAll('.word-inner');
+                    
+                    gsap.fromTo(words, 
+                        { y: '100%', rotateZ: 5 },
+                        {
+                            y: '0%',
+                            rotateZ: 0,
+                            duration: 1.2,
+                            stagger: 0.04,
+                            ease: 'power4.out',
+                            scrollTrigger: {
+                                trigger: el,
+                                start: 'top 85%',
+                                toggleActions: 'play none none reverse'
+                            }
+                        }
+                    );
+                });
+            }
+
+            initSpatialImages() {
+                const images = document.querySelectorAll('.spatial-image');
+                images.forEach(img => {
+                    gsap.fromTo(img,
+                        { clipPath: 'polygon(0% 100%, 100% 100%, 100% 100%, 0% 100%)', y: 50 },
+                        {
+                            clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)',
+                            y: 0,
+                            duration: 1.5,
+                            ease: 'power3.inOut',
+                            scrollTrigger: {
+                                trigger: img,
+                                start: 'top 90%',
+                                toggleActions: 'play none none none'
+                            }
+                        }
+                    );
+
+                    // Touch bypass for parallax
+                    if(!State.device.isTouch) {
+                        gsap.to(img.querySelector('img'), {
+                            yPercent: 20,
+                            ease: 'none',
+                            scrollTrigger: {
+                                trigger: img,
+                                start: 'top bottom',
+                                end: 'bottom top',
+                                scrub: true
+                            }
+                        });
+                    }
+                });
+            }
+        }
+
+        // EXECUTION
+        document.addEventListener('DOMContentLoaded', () => {
+            const shader = new ShaderEngine();
+            const orchestrator = new Orchestrator();
+
+            // Render loop separation
+            function tick(time) {
+                shader.render(time);
+                requestAnimationFrame(tick);
+            }
+            requestAnimationFrame(tick);
+        });
+
+    </script>
+</body>
+</html>
